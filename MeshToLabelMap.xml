@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <title>Mesh To Label Map</title>
+  <description>This module converts a 3D model into a label map</description>
+  <category>Shape Analysis</category>
+  <parameters>
+    <label>I/O parameters</label>
+    <image>
+           <name>reference</name>
+           <longflag>reference</longflag>
+           <flag>R</flag>
+           <label>Reference Image</label>
+           <channel>input</channel>
+           <description><![CDATA[Reference image: used to set the output image size, orientation, spacing and dimensions]]></description>
+    </image>
+    <image>
+           <name>labelMap</name>
+           <longflag>label</longflag>
+           <flag>l</flag>
+           <label>Output Label Map</label>
+           <channel>output</channel>
+           <description><![CDATA[Output Label Map]]></description>
+    </image>
+    <geometry fileExtensions=".vtk">
+           <name>mesh</name>
+           <label>Input Mesh</label>
+           <channel>input</channel>
+           <longflag>--mesh</longflag>
+           <flag>-m</flag>
+           <description><![CDATA[Input Mesh]]></description>
+    </geometry>
+    <double>
+           <name>smoothing</name>
+           <longflag>median</longflag>
+           <label>Smoothing Factor</label>
+           <default>0</default>
+           <constraints>
+             <minimum>0</minimum>
+           </constraints>
+    </double>
+    <double-vector>
+           <name>spacingVec</name>
+           <longflag>spacing</longflag>
+           <flag>s</flag>
+           <label>Spacing</label>
+           <default>1,1,1</default>
+    </double-vector>
+  </parameters>
+</executable>
