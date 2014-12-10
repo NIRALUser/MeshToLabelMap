@@ -11,7 +11,7 @@
            <flag>R</flag>
            <label>Reference Image</label>
            <channel>input</channel>
-           <description><![CDATA[Reference image: used to set the output image size, orientation, spacing and dimensions]]></description>
+           <description><![CDATA[Reference image: used to set the output image size, spacing and dimensions]]></description>
     </image>
     <image>
            <name>labelMap</name>
@@ -19,7 +19,7 @@
            <flag>l</flag>
            <label>Output Label Map</label>
            <channel>output</channel>
-           <description><![CDATA[Output Label Map]]></description>
+           <description><![CDATA[Output label map]]></description>
     </image>
     <geometry fileExtensions=".vtk">
            <name>mesh</name>
@@ -27,23 +27,36 @@
            <channel>input</channel>
            <longflag>--mesh</longflag>
            <flag>-m</flag>
-           <description><![CDATA[Input Mesh]]></description>
+           <description><![CDATA[Input mesh to convert into a label map]]></description>
     </geometry>
-    <double>
+    <boolean>
            <name>smoothing</name>
            <longflag>median</longflag>
-           <label>Smoothing Factor</label>
+           <label>Apply smoothing</label>
            <default>0</default>
-           <constraints>
-             <minimum>0</minimum>
-           </constraints>
-    </double>
+           <description><![CDATA[Select if a median image filter smoothing is applied to the output label map]]></description>    
+    </boolean>
+    <boolean>
+           <name>verbose</name>
+           <longflag>verbose</longflag>
+           <label>Verbose</label>
+           <default>0</default>
+           <description><![CDATA[Print information while tool in running]]></description>    
+    </boolean>
+    <double-vector>
+           <name>smoothingRadius</name>
+           <longflag>median_radius</longflag>
+           <label>Smoothing kernel radius</label>
+           <default>1,1,1</default>
+           <description><![CDATA[Radius of the kernel of the median smoothing]]></description>
+    </double-vector>
     <double-vector>
            <name>spacingVec</name>
            <longflag>spacing</longflag>
            <flag>s</flag>
            <label>Spacing</label>
            <default>1,1,1</default>
+           <description><![CDATA[Output label map volume spacing]]></description>
     </double-vector>
   </parameters>
 </executable>

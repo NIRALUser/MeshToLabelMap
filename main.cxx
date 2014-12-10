@@ -6,6 +6,7 @@
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
+#include <itkMedianImageFilter.h>
 
 #include <vtkSmartPointer.h>
 #include "vtkPolyData.h"
@@ -234,28 +235,30 @@ int main ( int argc, char *argv[] )
 {
   typedef itk::Image < unsigned char, 3 > ImageType ;
   typedef ImageType::Pointer ImagePointer ;
-
+  //Parses command line arguments
   PARSE_ARGS ;
   if( mesh.empty() || labelMap.empty() )
   {
-    std::cerr << "Need input files" << std::endl ;
+    std::cerr << "Please specify an input mesh and and output label map" << std::endl ;
     return EXIT_FAILURE ;
   }
+  if( spacingVec.size() != 3 || smoothingRadius.size() != 3 )
+  {
+    std::cerr << "Spacing and smoothingRadius must have 3 values" << std::endl ;
+    return EXIT_FAILURE ;
+  }
+  //Loads mesh
   vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New() ;
   if( ReadVTK( mesh , polyData ) )
   {
-    return 1 ;
+    return EXIT_FAILURE ;
   }
   double spacing[ 3 ] ;
   double origin[ 3] ;
   int size[ 3 ] ;
   if( reference.empty() )
   {
-    if( spacingVec.size() != 3 )
-    {
-      std::cerr << "Spacing must have 3 values" << std::endl ;
-      return EXIT_FAILURE ;
-    }
+    //If no reference image given, computes a bounding box around the mesh and uses the spacing given by the user
     for( int i = 0 ; i < 3 ; i++ )
     {
       spacing[ i ] = spacingVec[ i ] ;
@@ -264,19 +267,18 @@ int main ( int argc, char *argv[] )
   }
   else
   {
-  // start by reading the polydata files and converting them to volumes 
-   typedef itk::ImageFileReader < ImageType > ImageReaderType ;
-   ImageReaderType::Pointer referenceVolume = ImageReaderType::New() ;
-   referenceVolume->SetFileName( reference ) ;
-   referenceVolume->UpdateOutputInformation() ;
-   
-   for( unsigned int i = 0 ; i < 3 ; i++ )
-   {
-     size[ i ] = referenceVolume->GetImageIO()->GetDimensions( i ) ;
-     origin[ i ] = referenceVolume->GetImageIO()->GetOrigin( i ) ;
-     spacing[ i ] = referenceVolume->GetImageIO()->GetSpacing( i ) ;
-   }
-   }
+    // Reads reference volume and get spacing, dimension and size information for the output label map from it
+    typedef itk::ImageFileReader < ImageType > ImageReaderType ;
+    ImageReaderType::Pointer referenceVolume = ImageReaderType::New() ;
+    referenceVolume->SetFileName( reference ) ;
+    referenceVolume->UpdateOutputInformation() ;
+    for( unsigned int i = 0 ; i < 3 ; i++ )
+    {
+      size[ i ] = referenceVolume->GetImageIO()->GetDimensions( i ) ;
+      origin[ i ] = referenceVolume->GetImageIO()->GetOrigin( i ) ;
+      spacing[ i ] = referenceVolume->GetImageIO()->GetSpacing( i ) ;
+    }
+  }
 
 
      
@@ -291,7 +293,25 @@ int main ( int argc, char *argv[] )
    vtkImageData *vtkBinaryVolume = scanConverter->GetBinaryVolume () ;
    ImagePointer binaryVolume ;
    binaryVolume = VTK2BinaryITK ( vtkBinaryVolume ) ;
-              
+   if( smoothing )
+   {
+     if( verbose )
+     {
+       std::cout << "Median Filtering" << std::endl ;
+     }
+     typedef itk::MedianImageFilter<ImageType,ImageType> MedianFilterType ;
+     MedianFilterType::InputSizeType radius;
+     radius.Fill(2);
+     for( int i = 0 ; i < 3 ; i++ )
+     {
+       radius.Fill( smoothingRadius[i] ) ;
+     }
+     MedianFilterType::Pointer medianFilter = MedianFilterType::New() ;
+     medianFilter->SetInput( binaryVolume ) ;
+     medianFilter->SetRadius( radius ) ;
+     medianFilter->Update() ;
+     binaryVolume = medianFilter->GetOutput() ;
+   }
    WriteITKImage( binaryVolume , labelMap ) ;  
    return EXIT_SUCCESS ;
 } 
