@@ -26,15 +26,6 @@ vtkPolyDataToImageStencilOBBTree.cxx
 vtkPolyDataToImageStencilOBBTree.h
 )
 
-set (VTK_LIBRARIES
-  vtkRendering
-  vtkGraphics
-  vtkImaging
-  vtkIO
-  vtkCommon
-  vtkFiltering 
-) 
-
 
 
 GENERATECLP(MyModule_SOURCE MeshToLabelMap.xml)

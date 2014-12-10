@@ -53,7 +53,7 @@ vtkAttributedPolyDataToImage::~vtkAttributedPolyDataToImage()
       //this->GetOutput()->Delete() ;
       //if ( this->stencil->GetStencil() )
       //this->stencil->GetStencil()->Delete () ;
-      this->stencil->Delete () ;
+    //  this->stencil->Delete () ;
     }
 }
 
@@ -267,19 +267,12 @@ void vtkAttributedPolyDataToImage::ComputeAttributeVolume ()
   stencil->GetOrigin ( origin ) ;
   extent= this->GetOutputWholeExtent () ;
 
-  std::cout << "Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] << std::endl ;
-  std::cout << "Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl ;
-  std::cout << "Extent: " << extent[0] << " " << extent[1] << " " << extent[2] << " " << extent[3] << " " << extent[4] << " " << extent[5] << std::endl ;
-
   // create empty image
   this->AttributeVolume = vtkImageData::New () ;
   this->AttributeVolume->SetOrigin ( origin ) ;
   this->AttributeVolume->SetSpacing ( spacing ) ;
   this->AttributeVolume->SetDimensions ( extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1 ) ;
-  //this->AttributeVolume->SetWholeExtent ( extent ) ;
-  this->AttributeVolume->SetScalarTypeToDouble();
-  this->AttributeVolume->AllocateScalars();
-  this->AttributeVolume->Update();
+  this->AttributeVolume->AllocateScalars(VTK_FLOAT, 1);
 
   for ( int i = 0 ; i <= extent[1] ; i++ )
   {
@@ -356,24 +349,19 @@ vtkImageData * vtkAttributedPolyDataToImage::GetBinaryVolume()
   emptyImage->SetOrigin ( origin ) ;
   emptyImage->SetSpacing ( spacing ) ;
   emptyImage->SetDimensions ( size ) ;
-  emptyImage->SetScalarTypeToInt() ;
-  emptyImage->AllocateScalars() ;
-  emptyImage->Update() ;
-
+  emptyImage->AllocateScalars(VTK_INT, 1);
   
   // Use the stencil as a cookie cutter
   this->stencil = vtkImageStencil::New () ;
-  this->stencil->SetInput ( emptyImage ) ;
+  this->stencil->SetInputData ( emptyImage ) ;
   //this->GetOutput() ;
   
-  this->stencil->SetStencil ( this->GetOutput () ) ;
+  this->stencil->SetStencilData ( this->GetOutput () ) ;
   
   this->stencil->ReverseStencilOn () ;
   this->stencil->SetBackgroundValue ( 128 ) ;
   this->stencil->Update () ;
-
   this->BinaryVolume = this->stencil->GetOutput () ;
-  this->BinaryVolume->SetScalarTypeToInt () ;
   //this->stencil->Delete() ;
 
   emptyImage->Delete () ;

@@ -106,11 +106,11 @@ void vtkPolyDataToImageStencilOBBTree::SetInput(vtkPolyData *input)
 {
   if (input)
     {
-    this->SetInputConnection(0, input->GetProducerPort());
+    this->SetInputDataObject(0, input);
     }
   else
     {
-    this->SetInputConnection(0, 0);
+    this->SetInputDataObject(0, 0);
     }
 }
 
@@ -202,8 +202,7 @@ int vtkPolyDataToImageStencilOBBTree::RequestInformation(
   // origin, and whole extent from it.
   if (this->InformationInput)
     {
-    this->InformationInput->UpdateInformation();
-    this->InformationInput->GetWholeExtent(wholeExtent);
+    this->InformationInput->GetExtent(wholeExtent);
     this->InformationInput->GetSpacing(spacing);
     this->InformationInput->GetOrigin(origin);
     }
