@@ -50,10 +50,17 @@ itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage 
   itkImage->SetRegions( region ) ;
   double origin[ 3 ] ;
   vtkImage->GetOrigin( origin ) ;
+  origin[ 0 ] = -origin[ 0 ] ; //RAS->LPS transform
+  origin[ 1 ] = -origin[ 1 ] ; //RAS->LPS transform
   itkImage->SetOrigin ( origin ) ;
   double spacing[ 3 ] ;
   vtkImage->GetSpacing( spacing ) ;
   itkImage->SetSpacing ( spacing ) ;
+  ImageType::DirectionType direction ;
+  direction[ 0 ][ 0 ] = -1 ;//RAS->LPS transform
+  direction[ 1 ][ 1 ] = -1 ;//RAS->LPS transform
+  direction[ 2 ][ 2 ] = 1 ;//RAS->LPS transform
+  itkImage->SetDirection( direction ) ;
   itkImage->Allocate () ;  
   ImageType::IndexType index ;
   int pixel ;
@@ -270,6 +277,7 @@ int main ( int argc, char *argv[] )
   }
   if( verbose )
   {
+    std::cout << "Output Label Map properties:" << std::endl ;
     std::cout << "Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl ;
     std::cout << "Size: " << size[0] << " " << size[1] << " " << size[2] << std::endl ;
     std::cout << "Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] << std::endl ;
