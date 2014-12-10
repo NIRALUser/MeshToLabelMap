@@ -9,11 +9,14 @@
 #include <itkMedianImageFilter.h>
 
 #include <vtkSmartPointer.h>
+#include <vtkTransform.h>
+#include <vtkMatrix4x4.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataReader.h>
 #include <vtkXMLPolyDataReader.h>
 #include <vtkImageData.h>
 #include <vtkCommand.h>
+#include <vtkTransformPolyDataFilter.h>
 #include "vtkAttributedPolyDataToImage.h"
 
 
@@ -50,17 +53,10 @@ itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage 
   itkImage->SetRegions( region ) ;
   double origin[ 3 ] ;
   vtkImage->GetOrigin( origin ) ;
-  origin[ 0 ] = -origin[ 0 ] ; //RAS->LPS transform
-  origin[ 1 ] = -origin[ 1 ] ; //RAS->LPS transform
   itkImage->SetOrigin ( origin ) ;
   double spacing[ 3 ] ;
   vtkImage->GetSpacing( spacing ) ;
   itkImage->SetSpacing ( spacing ) ;
-  ImageType::DirectionType direction ;
-  direction[ 0 ][ 0 ] = -1 ;//RAS->LPS transform
-  direction[ 1 ][ 1 ] = -1 ;//RAS->LPS transform
-  direction[ 2 ][ 2 ] = 1 ;//RAS->LPS transform
-  itkImage->SetDirection( direction ) ;
   itkImage->Allocate () ;  
   ImageType::IndexType index ;
   int pixel ;
@@ -83,7 +79,28 @@ itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage 
   return itkImage ;
 }
 
-void ComputeBoundingBox( vtkSmartPointer<vtkPolyData> mesh ,
+void ComputeBoundingBoxFromReferenceImage( std::string reference ,
+                         double spacing[ 3 ] ,
+                         int size[ 3 ] ,
+                         double origin [ 3 ] ,
+                         bool verbose
+                       )
+{
+    // Reads reference volume and get spacing, dimension and size information for the output label map from it
+    typedef itk::Image < unsigned char, 3 > ImageType ;
+    typedef itk::ImageFileReader < ImageType > ImageReaderType ;
+    ImageReaderType::Pointer referenceVolume = ImageReaderType::New() ;
+    referenceVolume->SetFileName( reference ) ;
+    referenceVolume->UpdateOutputInformation() ;
+    for( unsigned int i = 0 ; i < 3 ; i++ )
+    {
+      size[ i ] = referenceVolume->GetImageIO()->GetDimensions( i ) ;
+      origin[ i ] = -referenceVolume->GetImageIO()->GetOrigin( i ) ; //LPS->RAS conversion
+      spacing[ i ] = referenceVolume->GetImageIO()->GetSpacing( i ) ;
+    }
+}
+
+void ComputeBoundingBoxFromPolyData( vtkSmartPointer<vtkPolyData> mesh ,
                          std::vector< double > boundaryExtension ,
                          double spacing[ 3 ] ,
                          int size[ 3 ] ,
@@ -249,6 +266,19 @@ int main ( int argc, char *argv[] )
   {
     return EXIT_FAILURE ;
   }
+  vtkSmartPointer<vtkMatrix4x4> RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New() ;
+  RASMatrix->Identity() ;
+  RASMatrix->SetElement( 0 , 0 , -1 ) ;
+  RASMatrix->SetElement( 1 , 1 , -1 ) ;
+  vtkSmartPointer<vtkTransform> RASMatrixTransform =
+             vtkSmartPointer<vtkTransform>::New() ;
+  RASMatrixTransform->SetMatrix( RASMatrix ) ;
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
+             vtkSmartPointer<vtkTransformPolyDataFilter>::New() ;
+  transformFilter->SetInputData( polyData ) ;
+  transformFilter->SetTransform( RASMatrixTransform ) ;
+  transformFilter->Update();
+  polyData = transformFilter->GetOutput() ;
   double spacing[ 3 ] ;
   double origin[ 3] ;
   int size[ 3 ] ;
@@ -259,21 +289,11 @@ int main ( int argc, char *argv[] )
     {
       spacing[ i ] = spacingVec[ i ] ;
     }
-    ComputeBoundingBox( polyData , boundaryExtension , spacing , size , origin , verbose ) ;
+    ComputeBoundingBoxFromPolyData( polyData , boundaryExtension , spacing , size , origin , verbose ) ;
   }
   else
   {
-    // Reads reference volume and get spacing, dimension and size information for the output label map from it
-    typedef itk::ImageFileReader < ImageType > ImageReaderType ;
-    ImageReaderType::Pointer referenceVolume = ImageReaderType::New() ;
-    referenceVolume->SetFileName( reference ) ;
-    referenceVolume->UpdateOutputInformation() ;
-    for( unsigned int i = 0 ; i < 3 ; i++ )
-    {
-      size[ i ] = referenceVolume->GetImageIO()->GetDimensions( i ) ;
-      origin[ i ] = referenceVolume->GetImageIO()->GetOrigin( i ) ;
-      spacing[ i ] = referenceVolume->GetImageIO()->GetSpacing( i ) ;
-    }
+    ComputeBoundingBoxFromReferenceImage( reference , spacing , size , origin , verbose ) ;
   }
   if( verbose )
   {
