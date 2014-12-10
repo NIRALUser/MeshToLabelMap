@@ -109,11 +109,12 @@ int vtkAttributedPolyDataToImage::RequestData(
   double *spacing = data->GetSpacing();
   double *origin = data->GetOrigin();
 
-
-  std::cout << "Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] << std::endl ;
-  std::cout << "Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl ;
-  std::cout << "Extent: " << extent[0] << " " << extent[1] << " " << extent[2] << " " << extent[3] << " " << extent[4] << " " << extent[5] << std::endl ;
-
+  if( this->GetDebug() )
+  {
+      std::cout << "Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] << std::endl ;
+      std::cout << "Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl ;
+      std::cout << "Extent: " << extent[0] << " " << extent[1] << " " << extent[2] << " " << extent[3] << " " << extent[4] << " " << extent[5] << std::endl ;
+  }
   vtkOBBTree *tree = this->OBBTree;
   vtkPoints *points = vtkPoints::New();
 
@@ -197,9 +198,9 @@ int vtkAttributedPolyDataToImage::RequestData(
         this->faceList->InsertNextValue ( faces->GetId ( i ) ) ;
       }
       int nPoints = points->GetNumberOfPoints () ;
-      if ( nPoints != nFaces )
+      if ( this->GetDebug() && nPoints != nFaces )
       {
-        std::cout << "Poop" << std::endl ;
+          std::cout << "Problem: nPoints != nFaces. nPoints=" << nPoints << "-- nFaces=" << nFaces << std::endl ;
       }
       double p[3] ;
       for ( i = 0 ; i < nPoints ; i++ )
@@ -254,7 +255,6 @@ int vtkAttributedPolyDataToImage::RequestData(
   points->Delete();
 
   this->ScanConvertPerformed = true ;
-  //std::cout << "Scan convert completed. " << std::endl ;
   return 1 ;
 }
 
@@ -296,19 +296,21 @@ void vtkAttributedPolyDataToImage::ComputeAttributeVolume ()
   {
     this->pointList->GetPoint ( i, p ) ;
     faceId = this->faceList->GetValue ( i ) ;
-  
-    vtkIdList *facePoints = vtkIdList::New () ;
-    this->mesh->GetCellPoints ( faceId, facePoints ) ;    
-    result = this->mesh->GetCell ( faceId )->EvaluatePosition ( p, closestPoint, subId, pCoords, dist2, weights ) ;
-    if ( result == 0 ) 
-      {
-	std::cout << "outside" << std::endl ;
-      }
-    else if ( result == -1 ) 
-      {
-	std::cout << "numerical error" << std::endl ;
-      }
 
+    vtkIdList *facePoints = vtkIdList::New () ;
+    this->mesh->GetCellPoints ( faceId, facePoints ) ;
+    result = this->mesh->GetCell ( faceId )->EvaluatePosition ( p, closestPoint, subId, pCoords, dist2, weights ) ;
+    if( this->GetDebug() )
+    {
+        if ( result == 0 )
+        {
+            std::cout << "outside" << std::endl ;
+        }
+        else if ( result == -1 )
+        {
+            std::cout << "numerical error" << std::endl ;
+        }
+    }
     int gridCoords[3] ;
     double attributeValue, vertAttributes[3] ;
     attributeValue = 0 ;

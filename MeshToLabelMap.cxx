@@ -108,46 +108,30 @@ void ComputeBoundingBoxFromPolyData( vtkSmartPointer<vtkPolyData> mesh ,
                          bool verbose
                        )
 {
-   // we'll need to compute the bounding box for the entire population  
-   double largestBoundaries[ 6 ] ;
-   largestBoundaries[0] = largestBoundaries[2] = largestBoundaries[4] = 1000 ;
-   largestBoundaries[1] = largestBoundaries[3] = largestBoundaries[5] = -1000 ;
-   double bb[ 6 ] ;
-   mesh->GetBounds ( bb ) ;
-   if( verbose )
-   {
-     std::cout << "Input Mesh Bounding Box: " << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << std::endl ;
-   }
-   if ( bb[0] < largestBoundaries[0] )
-   {
-      largestBoundaries[0] = bb[0] ;
-   }
-   if ( bb[2] < largestBoundaries[2] )
-   {
-      largestBoundaries[2] = bb[2] ;
-   }
-   if ( bb[4] < largestBoundaries[4] )
-   {
-      largestBoundaries[4] = bb[4] ;
-   }
-   if ( bb[1] > largestBoundaries[1] )
-   {
-      largestBoundaries[1] = bb[1] ;
-   }
-   if ( bb[3] > largestBoundaries[3] )
-   {
-      largestBoundaries[3] = bb[3] ;
-   }
-   if ( bb[5] > largestBoundaries[5] )
-   {
-      largestBoundaries[5] = bb[5] ;
-   }
-   // compute image size and origin given the bounding box, the given spacing and the boundary extension
-   for ( int i = 0 ; i < 3 ; i++ )
-     {
-       origin[i] = largestBoundaries[ 2 * i ] - boundaryExtension[ i ] * spacing[ i ] ;
-       size[i] = ceil( ( largestBoundaries[ 2 * i + 1 ] - origin[ i ] ) / spacing[ i ] ) + boundaryExtension[ i ] ;
-     }
+    // we'll need to compute the bounding box for the mesh
+    double largestBoundaries[ 6 ] ;
+    int largestPossibleImage = 2000 ;
+    mesh->GetBounds ( largestBoundaries ) ;
+    if( verbose )
+    {
+        std::cout << "Input Mesh Bounding Box: " << largestBoundaries[0] << " "
+                                                 << largestBoundaries[1] << " "
+                                                 << largestBoundaries[2] << " "
+                                                 << largestBoundaries[3] << " "
+                                                 << largestBoundaries[4] << " "
+                                                 << largestBoundaries[5] << std::endl ;
+    }
+    // compute image size and origin given the bounding box, the given spacing and the boundary extension
+    for ( int i = 0 ; i < 3 ; i++ )
+    {
+        origin[i] = largestBoundaries[ 2 * i ] - boundaryExtension[ i ] * spacing[ i ] ;
+        size[i] = ceil( ( largestBoundaries[ 2 * i + 1 ] - origin[ i ] ) / spacing[ i ] ) + boundaryExtension[ i ] ;
+        if( size[ i ] > largestPossibleImage )
+        {
+            std::cerr << "Dimension " << i << " : Very large size! (" << size[ i ] <<
+                         "). The tool might be very slow or crash due to lack of memory." << std::endl ;
+        }
+    }
 }
 
 //class ErrorObserver copied from http://www.vtk.org/Wiki/VTK/Examples/Cxx/Utilities/ObserveError
@@ -277,7 +261,7 @@ int main ( int argc, char *argv[] )
              vtkSmartPointer<vtkTransformPolyDataFilter>::New() ;
   transformFilter->SetInputData( polyData ) ;
   transformFilter->SetTransform( RASMatrixTransform ) ;
-  transformFilter->Update();
+  transformFilter->Update() ;
   polyData = transformFilter->GetOutput() ;
   double spacing[ 3 ] ;
   double origin[ 3] ;
