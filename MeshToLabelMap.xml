@@ -29,27 +29,9 @@
            <flag>-m</flag>
            <description><![CDATA[Input mesh to convert into a label map]]></description>
     </geometry>
-    <boolean>
-           <name>smoothing</name>
-           <longflag>median</longflag>
-           <label>Apply smoothing</label>
-           <default>0</default>
-           <description><![CDATA[Select if a median image filter smoothing is applied to the output label map]]></description>    
-    </boolean>
-    <boolean>
-           <name>verbose</name>
-           <longflag>verbose</longflag>
-           <label>Verbose</label>
-           <default>0</default>
-           <description><![CDATA[Print information while tool in running]]></description>    
-    </boolean>
-    <double-vector>
-           <name>smoothingRadius</name>
-           <longflag>median_radius</longflag>
-           <label>Smoothing kernel radius</label>
-           <default>1,1,1</default>
-           <description><![CDATA[Radius of the kernel of the median smoothing]]></description>
-    </double-vector>
+  </parameters>
+  <parameters>
+    <label>Bounding box parameters</label>
     <double-vector>
            <name>spacingVec</name>
            <longflag>spacing</longflag>
@@ -58,5 +40,40 @@
            <default>1,1,1</default>
            <description><![CDATA[Output label map volume spacing]]></description>
     </double-vector>
+    <double-vector>
+           <name>boundaryExtension</name>
+           <longflag>boundary_extension</longflag>
+           <flag>e</flag>
+           <label>Boundary Extension</label>
+           <default>1,1,1</default>
+           <description><![CDATA[Extension (in number of voxel) of the boundary box computed from the input mesh]]></description>
+    </double-vector>
+  </parameters>
+  <parameters>
+    <label>Post-processing parameters</label>
+    <boolean>
+           <name>smoothing</name>
+           <longflag>median</longflag>
+           <label>Apply smoothing</label>
+           <default>0</default>
+           <description><![CDATA[Select if a median image filter smoothing is applied to the output label map]]></description>    
+    </boolean>
+    <double-vector>
+           <name>smoothingRadius</name>
+           <longflag>median_radius</longflag>
+           <label>Smoothing kernel radius</label>
+           <default>1,1,1</default>
+           <description><![CDATA[Radius of the kernel of the median smoothing]]></description>
+    </double-vector>
+  </parameters>
+  <parameters>
+    <label>Advanced parameters</label>
+    <boolean>
+           <name>verbose</name>
+           <longflag>verbose</longflag>
+           <label>Verbose</label>
+           <default>0</default>
+           <description><![CDATA[Print information while tool in running]]></description>    
+    </boolean>
   </parameters>
 </executable>

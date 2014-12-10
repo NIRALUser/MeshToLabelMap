@@ -3,24 +3,24 @@
 #include <vector>
 #include <string>
 
-#include "itkImage.h"
-#include "itkImageFileWriter.h"
-#include "itkImageFileReader.h"
+#include <itkImage.h>
+#include <itkImageFileWriter.h>
+#include <itkImageFileReader.h>
 #include <itkMedianImageFilter.h>
 
 #include <vtkSmartPointer.h>
-#include "vtkPolyData.h"
-#include "vtkPolyDataReader.h"
+#include <vtkPolyData.h>
+#include <vtkPolyDataReader.h>
 #include <vtkXMLPolyDataReader.h>
-#include "vtkImageData.h"
+#include <vtkImageData.h>
 #include <vtkCommand.h>
 #include "vtkAttributedPolyDataToImage.h"
 
 
-void WriteITKImage ( itk::Image < unsigned char, 3 >::Pointer image, std::string fileName ) 
+void WriteITKImage ( itk::Image < unsigned char, 3 >::Pointer image, std::string fileName )
 {
   typedef itk::Image < unsigned char, 3 > ImageType ;
-  typedef itk::ImageFileWriter < ImageType > ImageWriterType ; 
+  typedef itk::ImageFileWriter < ImageType > ImageWriterType ;
   ImageWriterType::Pointer itkWriter = ImageWriterType::New() ;
   itkWriter->SetFileName ( fileName ) ;
   itkWriter->SetInput ( image ) ;
@@ -28,7 +28,7 @@ void WriteITKImage ( itk::Image < unsigned char, 3 >::Pointer image, std::string
   itkWriter->Write() ;
 }
 
-itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage ) 
+itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage )
 {
   typedef itk::Image < unsigned char, 3 > ImageType ;
   typedef ImageType::Pointer ImagePointer ;
@@ -42,20 +42,19 @@ itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage 
   
   ImagePointer itkImage = ImageType::New () ;
   
-  ImageType::RegionType region;
-  region.SetSize( size );
-  ImageType::IndexType start;
-  start[0] = start[1] = start[2] = 0;  
-  region.SetIndex( start );
-  itkImage->SetRegions( region );
+  ImageType::RegionType region ;
+  region.SetSize( size ) ;
+  ImageType::IndexType start ;
+  start[0] = start[1] = start[2] = 0 ;
+  region.SetIndex( start ) ;
+  itkImage->SetRegions( region ) ;
   double origin[ 3 ] ;
   vtkImage->GetOrigin( origin ) ;
   itkImage->SetOrigin ( origin ) ;
-  double spacing[3] ;
+  double spacing[ 3 ] ;
   vtkImage->GetSpacing( spacing ) ;
   itkImage->SetSpacing ( spacing ) ;
-  itkImage->Allocate () ;
-  
+  itkImage->Allocate () ;  
   ImageType::IndexType index ;
   int pixel ;
 
@@ -77,13 +76,18 @@ itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage 
   return itkImage ;
 }
 
-void ComputeBoundingBox( vtkSmartPointer<vtkPolyData> mesh , double spacing[ 3 ] , int size[ 3 ] , double origin [ 3 ] )
+void ComputeBoundingBox( vtkSmartPointer<vtkPolyData> mesh ,
+                         std::vector< double > boundaryExtension ,
+                         double spacing[ 3 ] ,
+                         int size[ 3 ] ,
+                         double origin [ 3 ]
+                       )
 {
    // we'll need to compute the bounding box for the entire population  
-   double largestBoundaries[6] ;
+   double largestBoundaries[ 6 ] ;
    largestBoundaries[0] = largestBoundaries[2] = largestBoundaries[4] = 1000 ;
    largestBoundaries[1] = largestBoundaries[3] = largestBoundaries[5] = -1000 ;
-   double bb[6] ;
+   double bb[ 6 ] ;
    mesh->GetBounds ( bb ) ;
    std::cout << "BB: " << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << std::endl ;
    if ( bb[0] < largestBoundaries[0] )
@@ -110,91 +114,72 @@ void ComputeBoundingBox( vtkSmartPointer<vtkPolyData> mesh , double spacing[ 3 ]
    {
       largestBoundaries[5] = bb[5] ;
    }
-
-  std::cout << "Largest boundaries: " << largestBoundaries[0] << " " << largestBoundaries[1] << " " << largestBoundaries[2] << " " << largestBoundaries[3] << " " << largestBoundaries[4] << " " << largestBoundaries[5] << std::endl ;
-
-   // compute image size, origin and spacing given the common bounding box
+   // compute image size and origin given the bounding box, the given spacing and the boundary extension
    for ( int i = 0 ; i < 3 ; i++ )
      {
-       origin[i] = floor ( largestBoundaries[2*i] ) - 1  ;
-       size[i] = ceil ( ( ceil ( largestBoundaries[2*i+1] ) - origin[i] ) / spacing[i] ) + 1 ;
+       origin[i] = largestBoundaries[ 2 * i ] - boundaryExtension[ i ] * spacing[ i ] ;
+       size[i] = ceil( ( largestBoundaries[ 2 * i + 1 ] - origin[ i ] ) / spacing[ i ] ) + boundaryExtension[ i ] ;
      }
-
-/*if (extraBorder != 0 )
-   {
-  size[0] += extraBorder ;
-        size[1] += extraBorder ;
-        size[2] += extraBorder ;
-  origin[0] -= extraBorder/2 ;
-        origin[1] -= extraBorder/2 ;
-        origin[2] -= extraBorder/2 ;
-  std::cout << "Extra border added! " << std::endl ; 
-   }*/
-
-   std::cout << "Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl ;
-   std::cout << "Size: " << size[0] << " " << size[1] << " " << size[2] << std::endl ;
-   std::cout << "Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] << std::endl ;
 }
-
 
 //class ErrorObserver copied from http://www.vtk.org/Wiki/VTK/Examples/Cxx/Utilities/ObserveError
 class ErrorObserver : public vtkCommand
 {
   public:
     ErrorObserver():
-    Error(false),
-    Warning(false),
-    ErrorMessage(""),
-    WarningMessage("") {}
+    Error( false ) ,
+    Warning( false ) ,
+    ErrorMessage( "" ) ,
+    WarningMessage( "" ) {}
     static ErrorObserver *New()
     {
-      return new ErrorObserver;
+      return new ErrorObserver ;
     }
     bool GetError() const
     {
-      return this->Error;
+      return this->Error ;
     }
     bool GetWarning() const
     {
-      return this->Warning;
+      return this->Warning ;
     }
     void Clear()
     {
-      this->Error = false;
-      this->Warning = false;
-      this->ErrorMessage = "";
-      this->WarningMessage = "";
+      this->Error = false ;
+      this->Warning = false ;
+      this->ErrorMessage = "" ;
+      this->WarningMessage = "" ;
     }
-    virtual void Execute(vtkObject *vtkNotUsed(caller),
-    unsigned long event,
-    void *calldata)
+    virtual void Execute( vtkObject *vtkNotUsed( caller ) ,
+                         unsigned long event ,
+                         void *calldata
+                        )
     {
-      switch(event)
+      switch( event )
       {
         case vtkCommand::ErrorEvent:
-          ErrorMessage = static_cast<char *>(calldata);
-          this->Error = true;
-          break;
+          ErrorMessage = static_cast<char *>( calldata ) ;
+          this->Error = true ;
+          break ;
         case vtkCommand::WarningEvent:
-          WarningMessage = static_cast<char *>(calldata);
-          this->Warning = true;
-          break;
+          WarningMessage = static_cast<char *>( calldata ) ;
+          this->Warning = true ;
+          break ;
       }
     }
-
     std::string GetErrorMessage()
     {
-      return ErrorMessage;
+      return ErrorMessage ;
     }
     std::string GetWarningMessage()
     {
-      return WarningMessage;
+      return WarningMessage ;
     }
   private:
-    bool Error;
-    bool Warning;
-    std::string ErrorMessage;
-    std::string WarningMessage;
+    bool Error ;
+    bool Warning ;
+    std::string ErrorMessage ;
+    std::string WarningMessage ;
 };
 
 
@@ -223,7 +208,7 @@ int ReadVTK( std::string input , vtkSmartPointer<vtkPolyData> &polyData )
     std::cerr << "Input file format not handled: " << input << " cannot be read" << std::endl ;
     return 1 ;
   }
-  if (errorObserver->GetError())
+  if( errorObserver->GetError() )
   {
     std::cout << "Caught error opening " << input << std::endl ;
     return 1 ;
@@ -242,9 +227,9 @@ int main ( int argc, char *argv[] )
     std::cerr << "Please specify an input mesh and and output label map" << std::endl ;
     return EXIT_FAILURE ;
   }
-  if( spacingVec.size() != 3 || smoothingRadius.size() != 3 )
+  if( spacingVec.size() != 3 || smoothingRadius.size() != 3 || boundaryExtension.size() != 3 )
   {
-    std::cerr << "Spacing and smoothingRadius must have 3 values" << std::endl ;
+    std::cerr << "Spacing, boundaryExtension and smoothingRadius must have 3 values" << std::endl ;
     return EXIT_FAILURE ;
   }
   //Loads mesh
@@ -263,7 +248,7 @@ int main ( int argc, char *argv[] )
     {
       spacing[ i ] = spacingVec[ i ] ;
     }
-    ComputeBoundingBox( polyData , spacing , size , origin ) ;
+    ComputeBoundingBox( polyData , boundaryExtension , spacing , size , origin ) ;
   }
   else
   {
@@ -279,40 +264,43 @@ int main ( int argc, char *argv[] )
       spacing[ i ] = referenceVolume->GetImageIO()->GetSpacing( i ) ;
     }
   }
-
-
-     
-   // Scan-convert the mesh
-   vtkSmartPointer<vtkAttributedPolyDataToImage> scanConverter = vtkSmartPointer<vtkAttributedPolyDataToImage>::New () ;
-   scanConverter->SetTolerance ( 0.0 ) ;
-   scanConverter->SetInput ( polyData ) ;
-   scanConverter->SetOutputOrigin ( origin ) ;
-   scanConverter->SetOutputSpacing ( spacing ) ;
-   scanConverter->SetOutputWholeExtent ( 0, size[0] - 1, 0, size[1] - 1, 0, size[2] - 1 ) ;
-   scanConverter->Update () ;
-   vtkImageData *vtkBinaryVolume = scanConverter->GetBinaryVolume () ;
-   ImagePointer binaryVolume ;
-   binaryVolume = VTK2BinaryITK ( vtkBinaryVolume ) ;
-   if( smoothing )
-   {
-     if( verbose )
-     {
-       std::cout << "Median Filtering" << std::endl ;
-     }
-     typedef itk::MedianImageFilter<ImageType,ImageType> MedianFilterType ;
-     MedianFilterType::InputSizeType radius;
-     radius.Fill(2);
-     for( int i = 0 ; i < 3 ; i++ )
-     {
-       radius.Fill( smoothingRadius[i] ) ;
-     }
-     MedianFilterType::Pointer medianFilter = MedianFilterType::New() ;
-     medianFilter->SetInput( binaryVolume ) ;
-     medianFilter->SetRadius( radius ) ;
-     medianFilter->Update() ;
-     binaryVolume = medianFilter->GetOutput() ;
-   }
-   WriteITKImage( binaryVolume , labelMap ) ;  
-   return EXIT_SUCCESS ;
-} 
+  if( verbose )
+  {
+    std::cout << "Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl ;
+    std::cout << "Size: " << size[0] << " " << size[1] << " " << size[2] << std::endl ;
+    std::cout << "Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] << std::endl ;
+  }
+  // Scan-convert the mesh
+  vtkSmartPointer<vtkAttributedPolyDataToImage> scanConverter = vtkSmartPointer<vtkAttributedPolyDataToImage>::New () ;
+  scanConverter->SetTolerance ( 0.0 ) ;
+  scanConverter->SetInput ( polyData ) ;
+  scanConverter->SetOutputOrigin ( origin ) ;
+  scanConverter->SetOutputSpacing ( spacing ) ;
+  scanConverter->SetOutputWholeExtent ( 0, size[0] - 1, 0, size[1] - 1, 0, size[2] - 1 ) ;
+  scanConverter->Update () ;
+  vtkImageData *vtkBinaryVolume = scanConverter->GetBinaryVolume () ;
+  ImagePointer binaryVolume ;
+  binaryVolume = VTK2BinaryITK ( vtkBinaryVolume ) ;
+  if( smoothing )
+  {
+    if( verbose )
+    {
+      std::cout << "Median Filtering" << std::endl ;
+    }
+    typedef itk::MedianImageFilter<ImageType,ImageType> MedianFilterType ;
+    MedianFilterType::InputSizeType radius;
+    radius.Fill(2);
+    for( int i = 0 ; i < 3 ; i++ )
+    {
+      radius.Fill( smoothingRadius[i] ) ;
+    }
+    MedianFilterType::Pointer medianFilter = MedianFilterType::New() ;
+    medianFilter->SetInput( binaryVolume ) ;
+    medianFilter->SetRadius( radius ) ;
+    medianFilter->Update() ;
+    binaryVolume = medianFilter->GetOutput() ;
+  }
+  WriteITKImage( binaryVolume , labelMap ) ;
+  return EXIT_SUCCESS ;
+}
 
