@@ -80,7 +80,8 @@ void ComputeBoundingBox( vtkSmartPointer<vtkPolyData> mesh ,
                          std::vector< double > boundaryExtension ,
                          double spacing[ 3 ] ,
                          int size[ 3 ] ,
-                         double origin [ 3 ]
+                         double origin [ 3 ] ,
+                         bool verbose
                        )
 {
    // we'll need to compute the bounding box for the entire population  
@@ -89,7 +90,10 @@ void ComputeBoundingBox( vtkSmartPointer<vtkPolyData> mesh ,
    largestBoundaries[1] = largestBoundaries[3] = largestBoundaries[5] = -1000 ;
    double bb[ 6 ] ;
    mesh->GetBounds ( bb ) ;
-   std::cout << "BB: " << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << std::endl ;
+   if( verbose )
+   {
+     std::cout << "Input Mesh Bounding Box: " << bb[0] << " " << bb[1] << " " << bb[2] << " " << bb[3] << " " << bb[4] << " " << bb[5] << std::endl ;
+   }
    if ( bb[0] < largestBoundaries[0] )
    {
       largestBoundaries[0] = bb[0] ;
@@ -248,7 +252,7 @@ int main ( int argc, char *argv[] )
     {
       spacing[ i ] = spacingVec[ i ] ;
     }
-    ComputeBoundingBox( polyData , boundaryExtension , spacing , size , origin ) ;
+    ComputeBoundingBox( polyData , boundaryExtension , spacing , size , origin , verbose ) ;
   }
   else
   {
@@ -286,6 +290,7 @@ int main ( int argc, char *argv[] )
     if( verbose )
     {
       std::cout << "Median Filtering" << std::endl ;
+      std::cout << "Radius: " << smoothingRadius[ 0 ] << " " << smoothingRadius[ 1 ] << " " << smoothingRadius[ 2 ] << std::endl ;
     }
     typedef itk::MedianImageFilter<ImageType,ImageType> MedianFilterType ;
     MedianFilterType::InputSizeType radius;
