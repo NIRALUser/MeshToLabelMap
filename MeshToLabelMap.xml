@@ -3,6 +3,12 @@
   <title>Mesh To Label Map</title>
   <description>This module converts a 3D model into a label map</description>
   <category>Shape Analysis</category>
+  <contributor>Francois Budin, Ipek Oguz</contributor>
+  <version>1.0.0</version>
+  <license>Apache License, Version 2.0</license>
+  <acknowledgements>
+  This work was funded by National Institute of Dental and Craniofacial Research (NIDCR) and the National Institute of Biomedical Imaging and Bioengineering (NIBIB) through the Grant R01 DE024450
+  </acknowledgements>
   <parameters>
     <label>I/O parameters</label>
     <image>
