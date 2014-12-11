@@ -261,6 +261,19 @@ int main ( int argc, char *argv[] )
       std::cerr << "Label map pixel value has to belong to [1;255]" << std::endl ;
       return EXIT_FAILURE ;
   }
+  //Check spacing information
+  if( ( spacingVec[ 0 ] != -1 || spacingVec[ 1 ] != -1 || spacingVec[ 2 ] != -1 )  && !reference.empty() )
+  {
+      std::cerr << "A reference image is given." << std::endl ;
+      std::cout << "Reference image spacing is used to set output label map spacing." << std::endl ;
+      std::cerr << "Do not specify additional spacing information." << std::endl ;
+      return EXIT_FAILURE ;
+  }
+  if( reference.empty() && ( spacingVec[ 0 ] <= 0 || spacingVec[ 1 ] <= 0 || spacingVec[ 2 ] <= 0 ) )
+  {
+      std::cerr << "Please provide valid spacing information ( > 0 )" << std::endl ;
+      return EXIT_FAILURE ;
+  }
   //Loads mesh
   vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New() ;
   if( ReadVTK( mesh , polyData ) )

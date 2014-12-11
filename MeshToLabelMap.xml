@@ -11,22 +11,6 @@
   </acknowledgements>
   <parameters>
     <label>I/O parameters</label>
-    <image>
-           <name>reference</name>
-           <longflag>reference</longflag>
-           <flag>R</flag>
-           <label>Reference Image</label>
-           <channel>input</channel>
-           <description><![CDATA[Reference image: used to set the output image size, orientation, spacing and dimensions]]></description>
-    </image>
-    <image>
-           <name>labelMap</name>
-           <longflag>label</longflag>
-           <flag>l</flag>
-           <label>Output Label Map</label>
-           <channel>output</channel>
-           <description><![CDATA[Output label map]]></description>
-    </image>
     <geometry fileExtensions=".vtk">
            <name>mesh</name>
            <label>Input Mesh</label>
@@ -35,15 +19,42 @@
            <flag>-m</flag>
            <description><![CDATA[Input mesh to convert into a label map]]></description>
     </geometry>
+    <image type="label">
+           <name>labelMap</name>
+           <longflag>label</longflag>
+           <flag>l</flag>
+           <label>Output Label Map</label>
+           <channel>output</channel>
+           <description><![CDATA[Output label map]]></description>
+    </image>
   </parameters>
   <parameters>
-    <label>Bounding box parameters</label>
+    <label>Output label map information</label>
+    <image>
+           <name>reference</name>
+           <longflag>reference</longflag>
+           <flag>R</flag>
+           <label>Reference Image</label>
+           <channel>input</channel>
+           <description><![CDATA[Reference image: used to set the output image size, orientation, spacing and dimensions]]></description>
+    </image>
+    <integer>
+           <name>value</name>
+           <longflag>pixel_value</longflag>
+           <label>Pixel Value</label>
+           <default>1</default>
+           <description><![CDATA[Label map pixel value]]></description>
+           <constraints>
+                 <minimum>1</minimum>
+                 <maximum>255</maximum>
+           </constraints>
+    </integer>
     <double-vector>
            <name>spacingVec</name>
            <longflag>spacing</longflag>
            <flag>s</flag>
            <label>Spacing</label>
-           <default>1,1,1</default>
+           <default>-1,-1,-1</default>
            <description><![CDATA[Output label map volume spacing]]></description>
     </double-vector>
     <double-vector>
@@ -55,7 +66,7 @@
            <description><![CDATA[Extension (in number of voxel) of the boundary box computed from the input mesh]]></description>
     </double-vector>
   </parameters>
-  <parameters>
+  <parameters advanced="true">
     <label>Post-processing parameters</label>
     <boolean>
            <name>smoothing</name>
@@ -72,7 +83,7 @@
            <description><![CDATA[Radius of the kernel of the median smoothing]]></description>
     </double-vector>
   </parameters>
-  <parameters>
+  <parameters advanced="true">
     <label>Advanced parameters</label>
     <boolean>
            <name>verbose</name>
@@ -81,16 +92,5 @@
            <default>0</default>
            <description><![CDATA[Print information while tool in running]]></description>
            </boolean>
-    <integer>
-           <name>value</name>
-           <longflag>pixel_value</longflag>
-           <label>Pixel Value</label>
-           <default>1</default>
-           <description><![CDATA[Label map pixel value]]></description>
-           <constraints>
-                 <minimum>1</minimum>
-                 <maximum>255</maximum>
-           </constraints>
-    </integer>
     </parameters>
 </executable>
