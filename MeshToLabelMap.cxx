@@ -20,15 +20,25 @@
 #include "vtkAttributedPolyDataToImage.h"
 
 
-void WriteITKImage ( itk::Image < unsigned char, 3 >::Pointer image, std::string fileName )
+int WriteITKImage ( itk::Image < unsigned char, 3 >::Pointer image, std::string fileName )
 {
-  typedef itk::Image < unsigned char, 3 > ImageType ;
-  typedef itk::ImageFileWriter < ImageType > ImageWriterType ;
-  ImageWriterType::Pointer itkWriter = ImageWriterType::New() ;
-  itkWriter->SetFileName ( fileName ) ;
-  itkWriter->SetInput ( image ) ;
-  itkWriter->UseCompressionOn() ;
-  itkWriter->Write() ;
+    try
+    {
+        typedef itk::Image < unsigned char, 3 > ImageType ;
+        typedef itk::ImageFileWriter < ImageType > ImageWriterType ;
+        ImageWriterType::Pointer itkWriter = ImageWriterType::New() ;
+        itkWriter->SetFileName ( fileName ) ;
+        itkWriter->SetInput ( image ) ;
+        itkWriter->UseCompressionOn() ;
+        itkWriter->Write() ;
+    }
+    catch( itk::ExceptionObject & err )
+    {
+        std::cerr << "ExceptionObject caught !" << std::endl ;
+        std::cerr << err << std::endl ;
+        return 1 ;
+    }
+    return 0 ;
 }
 
 itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage , itk::Matrix< double , 3 , 3 > direction , unsigned char value )
@@ -274,6 +284,11 @@ int main ( int argc, char *argv[] )
       std::cerr << "Please provide valid spacing information ( > 0 )" << std::endl ;
       return EXIT_FAILURE ;
   }
+  if( smoothing && ( smoothingRadius[ 0 ] < 1 || smoothingRadius[ 1 ] < 1 || smoothingRadius[ 2 ] < 1 ) )
+  {
+      std::cerr << "Please provide valid smoothing radius information ( >= 1 )" << std::endl ;
+      return EXIT_FAILURE ;
+  }
   //Loads mesh
   vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New() ;
   if( ReadVTK( mesh , polyData ) )
@@ -382,7 +397,10 @@ int main ( int argc, char *argv[] )
     medianFilter->Update() ;
     binaryVolume = medianFilter->GetOutput() ;
   }
-  WriteITKImage( binaryVolume , labelMap ) ;
+  if( WriteITKImage( binaryVolume , labelMap ) )
+  {
+    return EXIT_FAILURE ;
+  }
   return EXIT_SUCCESS ;
 }
 

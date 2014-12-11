@@ -15,13 +15,13 @@
            <name>mesh</name>
            <label>Input Mesh</label>
            <channel>input</channel>
-           <longflag>--mesh</longflag>
+           <longflag>input_mesh</longflag>
            <flag>-m</flag>
            <description><![CDATA[Input mesh to convert into a label map]]></description>
     </geometry>
     <image type="label">
            <name>labelMap</name>
-           <longflag>label</longflag>
+           <longflag>output_labelmap</longflag>
            <flag>l</flag>
            <label>Output Label Map</label>
            <channel>output</channel>
@@ -32,7 +32,7 @@
     <label>Output label map information</label>
     <image>
            <name>reference</name>
-           <longflag>reference</longflag>
+           <longflag>reference_volume</longflag>
            <flag>R</flag>
            <label>Reference Image</label>
            <channel>input</channel>
@@ -43,7 +43,7 @@
            <longflag>pixel_value</longflag>
            <label>Pixel Value</label>
            <default>1</default>
-           <description><![CDATA[Label map pixel value]]></description>
+           <description><![CDATA[Label map pixel value (needs to be an integer)]]></description>
            <constraints>
                  <minimum>1</minimum>
                  <maximum>255</maximum>
@@ -55,7 +55,7 @@
            <flag>s</flag>
            <label>Spacing</label>
            <default>-1,-1,-1</default>
-           <description><![CDATA[Output label map volume spacing]]></description>
+           <description><![CDATA[Output label map volume spacing (in mm)]]></description>
     </double-vector>
     <double-vector>
            <name>boundaryExtension</name>
@@ -79,8 +79,8 @@
            <name>smoothingRadius</name>
            <longflag>median_radius</longflag>
            <label>Smoothing kernel radius</label>
-           <default>1,1,1</default>
-           <description><![CDATA[Radius of the kernel of the median smoothing]]></description>
+           <default>-1,-1,-1</default>
+           <description><![CDATA[Radius (in number of voxel) of the kernel of the median smoothing]]></description>
     </double-vector>
   </parameters>
   <parameters advanced="true">
