@@ -43,7 +43,7 @@
            <longflag>pixel_value</longflag>
            <label>Pixel Value</label>
            <default>1</default>
-           <description><![CDATA[Label map pixel value (needs to be an integer)]]></description>
+           <description><![CDATA[Label map pixel value (needs to be an integer between 1 and 255 included)]]></description>
            <constraints>
                  <minimum>1</minimum>
                  <maximum>255</maximum>
