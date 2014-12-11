@@ -31,7 +31,7 @@ void WriteITKImage ( itk::Image < unsigned char, 3 >::Pointer image, std::string
   itkWriter->Write() ;
 }
 
-itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage )
+itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage , itk::Matrix< double , 3 , 3 > direction , unsigned char value )
 {
   typedef itk::Image < unsigned char, 3 > ImageType ;
   typedef ImageType::Pointer ImagePointer ;
@@ -53,26 +53,31 @@ itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage 
   itkImage->SetRegions( region ) ;
   double origin[ 3 ] ;
   vtkImage->GetOrigin( origin ) ;
-  itkImage->SetOrigin ( origin ) ;
+  itkImage->SetOrigin( origin ) ;
   double spacing[ 3 ] ;
   vtkImage->GetSpacing( spacing ) ;
-  itkImage->SetSpacing ( spacing ) ;
-  itkImage->Allocate () ;  
+  itkImage->SetSpacing( spacing ) ;
+  itkImage->SetDirection( direction ) ;
+  itkImage->Allocate() ;
   ImageType::IndexType index ;
   int pixel ;
 
-  for ( index[0] = 0 ; index[0] < size[0] ; index[0]++ )
+  for ( index[ 0 ] = 0 ; index[ 0 ] < size[ 0 ] ; index[ 0 ]++ )
   {
-    for ( index[1] = 0 ; index[1] < size[1] ; index[1]++ )
+    for ( index[ 1 ] = 0 ; index[ 1 ] < size[ 1 ] ; index[ 1 ]++ )
     {
-      for ( index[2] = 0 ; index[2] < size[2] ; index[2]++ )
+      for ( index[ 2 ] = 0 ; index[ 2 ] < size[ 2 ] ; index[ 2 ]++ )
       {
-        pixel = vtkImage->GetScalarComponentAsFloat ( index[0], index[1], index[2], 0 ) ;
+        pixel = vtkImage->GetScalarComponentAsFloat( index[ 0 ], index[ 1 ] , index[ 2 ] , 0 ) ;
         if ( pixel != 128 )
         {
           pixel = 0 ;
         }
-        itkImage->SetPixel ( index, pixel ) ;
+        else
+        {
+            pixel = value ;
+        }
+        itkImage->SetPixel ( index , pixel ) ;
       }
     }
   }
@@ -83,6 +88,7 @@ void ComputeBoundingBoxFromReferenceImage( std::string reference ,
                          double spacing[ 3 ] ,
                          int size[ 3 ] ,
                          double origin [ 3 ] ,
+                         itk::Matrix< double , 3 , 3 > &direction,
                          bool verbose
                        )
 {
@@ -92,11 +98,17 @@ void ComputeBoundingBoxFromReferenceImage( std::string reference ,
     ImageReaderType::Pointer referenceVolume = ImageReaderType::New() ;
     referenceVolume->SetFileName( reference ) ;
     referenceVolume->UpdateOutputInformation() ;
+    std::vector< std::vector< double > > directionVec ;
     for( unsigned int i = 0 ; i < 3 ; i++ )
     {
       size[ i ] = referenceVolume->GetImageIO()->GetDimensions( i ) ;
-      origin[ i ] = -referenceVolume->GetImageIO()->GetOrigin( i ) ; //LPS->RAS conversion
+      origin[ i ] = referenceVolume->GetImageIO()->GetOrigin( i ) ;
       spacing[ i ] = referenceVolume->GetImageIO()->GetSpacing( i ) ;
+      directionVec.push_back( referenceVolume->GetImageIO()->GetDirection( i ) ) ;
+      for( int j = 0 ; j < 3 ; j++ )
+      {
+          direction[ j ][ i ] = directionVec[ i ][ j ] ;
+      }
     }
 }
 
@@ -244,6 +256,11 @@ int main ( int argc, char *argv[] )
     std::cerr << "Spacing, boundaryExtension and smoothingRadius must have 3 values" << std::endl ;
     return EXIT_FAILURE ;
   }
+  if( value < 1 || value > 255 )
+  {
+      std::cerr << "Label map pixel value has to belong to [1;255]" << std::endl ;
+      return EXIT_FAILURE ;
+  }
   //Loads mesh
   vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New() ;
   if( ReadVTK( mesh , polyData ) )
@@ -254,18 +271,20 @@ int main ( int argc, char *argv[] )
   RASMatrix->Identity() ;
   RASMatrix->SetElement( 0 , 0 , -1 ) ;
   RASMatrix->SetElement( 1 , 1 , -1 ) ;
-  vtkSmartPointer<vtkTransform> RASMatrixTransform =
+  vtkSmartPointer<vtkTransform> transform =
              vtkSmartPointer<vtkTransform>::New() ;
-  RASMatrixTransform->SetMatrix( RASMatrix ) ;
+  transform->SetMatrix( RASMatrix ) ;
   vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
              vtkSmartPointer<vtkTransformPolyDataFilter>::New() ;
   transformFilter->SetInputData( polyData ) ;
-  transformFilter->SetTransform( RASMatrixTransform ) ;
+  transformFilter->SetTransform( transform ) ;
   transformFilter->Update() ;
-  polyData = transformFilter->GetOutput() ;
+  polyData->ShallowCopy( transformFilter->GetOutput() ) ;
   double spacing[ 3 ] ;
   double origin[ 3] ;
   int size[ 3 ] ;
+  itk::Matrix<double,3,3> direction ;
+  direction.SetIdentity() ;
   if( reference.empty() )
   {
     //If no reference image given, computes a bounding box around the mesh and uses the spacing given by the user
@@ -277,14 +296,46 @@ int main ( int argc, char *argv[] )
   }
   else
   {
-    ComputeBoundingBoxFromReferenceImage( reference , spacing , size , origin , verbose ) ;
+    ComputeBoundingBoxFromReferenceImage( reference , spacing , size , origin , direction , verbose ) ;
+    itk::Matrix<double,3,3> Mt ;
+    Mt = direction.GetTranspose() ;
+    if( verbose )
+    {
+        std::cout << "Direction: " << std::endl ;
+        std::cout << direction << std::endl ;
+        std::cout << "Transpose direction matrix: " << std::endl ;
+        std::cout << Mt << std::endl ;
+    }
+    itk::Vector<double,3> originPoint(origin)  ;
+    itk::Vector<double,3> offset ;
+    offset = originPoint - Mt * originPoint ;
+    vtkSmartPointer<vtkMatrix4x4> OrientationMatrix = vtkSmartPointer<vtkMatrix4x4>::New() ;
+    OrientationMatrix->Identity() ;
+    for( int i = 0 ; i < 3 ; i++ )
+    {
+      for( int j = 0 ; j < 3 ; j++ )
+      {
+          OrientationMatrix->SetElement( i , j , Mt[ i ][ j ] ) ;
+      }
+      OrientationMatrix->SetElement( i , 3 , offset[ i ] ) ;
+    }
+    if( verbose )
+    {
+      OrientationMatrix->Print( std::cout ) ;
+    }
+    transform->SetMatrix( OrientationMatrix ) ;
+    transformFilter->SetInputData( polyData ) ;
+    transformFilter->SetTransform( transform ) ;
+    transformFilter->Update() ;
+    polyData = transformFilter->GetOutput() ;
   }
   if( verbose )
   {
-    std::cout << "Output Label Map properties:" << std::endl ;
     std::cout << "Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl ;
     std::cout << "Size: " << size[0] << " " << size[1] << " " << size[2] << std::endl ;
     std::cout << "Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] << std::endl ;
+    std::cout << "Direction: " << std::endl ;
+    std::cout << direction << std::endl ;
   }
   // Scan-convert the mesh
   vtkSmartPointer<vtkAttributedPolyDataToImage> scanConverter = vtkSmartPointer<vtkAttributedPolyDataToImage>::New () ;
@@ -296,7 +347,8 @@ int main ( int argc, char *argv[] )
   scanConverter->Update () ;
   vtkImageData *vtkBinaryVolume = scanConverter->GetBinaryVolume () ;
   ImagePointer binaryVolume ;
-  binaryVolume = VTK2BinaryITK ( vtkBinaryVolume ) ;
+  //we can safely can 'value' which is an int to unsigned char because we checked that its value is between 1 and 255 (1 because 0 is the background value)
+  binaryVolume = VTK2BinaryITK ( vtkBinaryVolume , direction , (unsigned char)value ) ;
   if( smoothing )
   {
     if( verbose )

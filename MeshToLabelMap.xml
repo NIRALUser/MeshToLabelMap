@@ -17,7 +17,7 @@
            <flag>R</flag>
            <label>Reference Image</label>
            <channel>input</channel>
-           <description><![CDATA[Reference image: used to set the output image size, spacing and dimensions]]></description>
+           <description><![CDATA[Reference image: used to set the output image size, orientation, spacing and dimensions]]></description>
     </image>
     <image>
            <name>labelMap</name>
@@ -79,7 +79,18 @@
            <longflag>verbose</longflag>
            <label>Verbose</label>
            <default>0</default>
-           <description><![CDATA[Print information while tool in running]]></description>    
-    </boolean>
-  </parameters>
+           <description><![CDATA[Print information while tool in running]]></description>
+           </boolean>
+    <integer>
+           <name>value</name>
+           <longflag>pixel_value</longflag>
+           <label>Pixel Value</label>
+           <default>1</default>
+           <description><![CDATA[Label map pixel value]]></description>
+           <constraints>
+                 <minimum>1</minimum>
+                 <maximum>255</maximum>
+           </constraints>
+    </integer>
+    </parameters>
 </executable>
