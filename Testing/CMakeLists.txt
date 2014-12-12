@@ -118,6 +118,10 @@ if( NOT VTK_DEBUG_LEAKS )
   add_executable(${CLP}Test ${CLP}Test.cxx)
   target_link_libraries(${CLP}Test ${CLP}Lib )
   set_target_properties(${CLP}Test PROPERTIES LABELS ${CLP})
+  if( NOT Build_Static )
+    set_target_properties(${CLP}Test PROPERTIES COMPILE_FLAGS "-DBUILD_SHARED_LIBS") # definition of the variable for c++ preprocessor
+  endif()
+
 
   #Compute label map using the boundary box computed on the mesh. No reference image
   set( output${CLP}LabelMapWithBB ${TestingBinarydirectory}/LabelMapWithBB.nrrd )
