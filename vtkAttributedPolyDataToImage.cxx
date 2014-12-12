@@ -20,7 +20,6 @@
 
 #include <math.h>
 
-vtkCxxRevisionMacro(vtkAttributedPolyDataToImage, "$Revision: 1.4 $");
 vtkStandardNewMacro(vtkAttributedPolyDataToImage);
 
 
