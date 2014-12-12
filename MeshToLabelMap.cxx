@@ -70,13 +70,20 @@ itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage 
   itkImage->SetDirection( direction ) ;
   itkImage->Allocate() ;
   ImageType::IndexType index ;
-  int pixel ;
-
-  for ( index[ 0 ] = 0 ; index[ 0 ] < size[ 0 ] ; index[ 0 ]++ )
+  ImageType::IndexType maxIndex ;
+//The copy from size to maxIndex is just remove the warning due to the comparison of signed and unsigned
+//variables in the scope below
+  for( int i = 0 ; i < 3 ; i++ )
   {
-    for ( index[ 1 ] = 0 ; index[ 1 ] < size[ 1 ] ; index[ 1 ]++ )
+    maxIndex[ i ] = size[ i ] ;
+  }
+  int pixel ;
+  
+  for ( index[ 0 ] = 0 ; index[ 0 ] < maxIndex[ 0 ] ; index[ 0 ]++ )
+  {
+    for ( index[ 1 ] = 0 ; index[ 1 ] < maxIndex[ 1 ] ; index[ 1 ]++ )
     {
-      for ( index[ 2 ] = 0 ; index[ 2 ] < size[ 2 ] ; index[ 2 ]++ )
+      for ( index[ 2 ] = 0 ; index[ 2 ] < maxIndex[ 2 ] ; index[ 2 ]++ )
       {
         pixel = vtkImage->GetScalarComponentAsFloat( index[ 0 ], index[ 1 ] , index[ 2 ] , 0 ) ;
         if ( pixel != 128 )
@@ -98,8 +105,7 @@ void ComputeBoundingBoxFromReferenceImage( std::string reference ,
                          double spacing[ 3 ] ,
                          int size[ 3 ] ,
                          double origin [ 3 ] ,
-                         itk::Matrix< double , 3 , 3 > &direction,
-                         bool verbose
+                         itk::Matrix< double , 3 , 3 > &direction
                        )
 {
     // Reads reference volume and get spacing, dimension and size information for the output label map from it
@@ -324,7 +330,7 @@ int main ( int argc, char *argv[] )
   }
   else
   {
-    ComputeBoundingBoxFromReferenceImage( reference , spacing , size , origin , direction , verbose ) ;
+    ComputeBoundingBoxFromReferenceImage( reference , spacing , size , origin , direction ) ;
     itk::Matrix<double,3,3> Mt ;
     Mt = direction.GetTranspose() ;
     if( verbose )
