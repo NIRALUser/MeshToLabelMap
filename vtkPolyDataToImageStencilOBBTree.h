@@ -34,7 +34,7 @@ class vtkPolyDataToImageStencilOBBTree : public vtkImageStencilSource
 {
 public:
   static vtkPolyDataToImageStencilOBBTree *New();
-  vtkTypeRevisionMacro(vtkPolyDataToImageStencilOBBTree, vtkImageStencilSource);
+  vtkTypeMacro(vtkPolyDataToImageStencilOBBTree, vtkImageStencilSource);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:

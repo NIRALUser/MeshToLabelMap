@@ -24,7 +24,7 @@ class vtkAttributedPolyDataToImage : public vtkPolyDataToImageStencilOBBTree
   public:
 
   static vtkAttributedPolyDataToImage *New();
-  vtkTypeRevisionMacro(vtkAttributedPolyDataToImage, vtkPolyDataToImageStencilOBBTree);
+  vtkTypeMacro(vtkAttributedPolyDataToImage, vtkPolyDataToImageStencilOBBTree);
   //void PrintSelf(ostream& os, vtkIndent indent);
 
   vtkSetMacro(Attributes, vtkFloatArray *) ;
