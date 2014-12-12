@@ -25,6 +25,7 @@ enshot.png/800px-MeshToLabelMapScreenshot.png" )
   find_package( Git REQUIRED )
   find_package( Slicer REQUIRED )
   include( ${Slicer_USE_FILE} )
+  set( Build_Static OFF CACHE BOOL "Static libraries and executables only")
 endif()
 
 find_package(SlicerExecutionModel REQUIRED)
