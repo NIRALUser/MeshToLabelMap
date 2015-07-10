@@ -116,7 +116,7 @@ if( NOT VTK_DEBUG_LEAKS )
 
   #Build test that will compare baseline and output label map
   add_executable(${CLP}Test ${CLP}Test.cxx)
-  target_link_libraries(${CLP}Test ${CLP}Lib )
+  target_link_libraries(${CLP}Test ${CLP}Lib ${SlicerExecutionModel_EXTRA_EXECUTABLE_TARGET_LIBRARIES} )
   set_target_properties(${CLP}Test PROPERTIES LABELS ${CLP})
   if( NOT Build_Static )
     set_target_properties(${CLP}Test PROPERTIES COMPILE_FLAGS "-DBUILD_SHARED_LIBS") # definition of the variable for c++ preprocessor

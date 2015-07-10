@@ -30,10 +30,79 @@ endif()
 
 find_package(SlicerExecutionModel REQUIRED)
 include(${SlicerExecutionModel_USE_FILE})
-find_package (VTK REQUIRED)
+
+#
+# ITK
+#
+set( ALL_IO
+ITKIOBMP
+ITKIOBioRad
+ITKIOCSV
+ITKIODCMTK
+ITKIOGDCM
+ITKIOGE
+ITKIOGIPL
+ITKIOHDF5
+ITKIOIPL
+ITKIOJPEG
+ITKIOLSM
+ITKIOMRC
+ITKIOMesh
+ITKIOMeta
+ITKIONIFTI
+ITKIOPNG
+ITKIORAW
+ITKIOSiemens
+ITKIOSpatialObjects
+ITKIOStimulate
+ITKIOTIFF
+ITKIOTransformHDF5
+ITKIOTransformMatlab
+ITKIOVTK
+ITKIOXML
+MGHIO
+)
+
+find_package(ITK REQUIRED )
+list(APPEND LIST_ITK_IO_USED ITKIONRRD ITKIOTransformInsightLegacy)
+foreach( io ${ALL_IO} )
+  list( FIND ITK_MODULES_ENABLED ${io} position )
+  if( ${position} GREATER -1 ) #not found: ${position}==-1
+    list( APPEND LIST_ITK_IO_USED ${io} )
+  endif()
+endforeach()
+
+set(ITKComponents
+  ITKCommon
+  ITKIOImageBase
+  ITKSmoothing
+  ${LIST_ITK_IO_USED}
+  )
+
+find_package(ITK COMPONENTS ${ITKComponents} REQUIRED )
+include(${ITK_USE_FILE})
+
+
+find_package(VTK COMPONENTS
+  vtkCommonComputationalGeometry
+  vtkCommonCore
+  vtkCommonDataModel
+  vtkCommonExecutionModel
+  vtkCommonMath
+  vtkCommonMisc
+  vtkCommonSystem
+  vtkCommonTransforms
+  vtkFiltersCore
+  vtkFiltersGeneral
+  vtkIOCore
+  vtkIOGeometry
+  vtkIOLegacy
+  vtkIOXML
+  vtkIOXMLParser
+  vtkImagingCore
+  vtkImagingStencil
+)
 include (${VTK_USE_FILE})
-find_package (ITK REQUIRED)
-include (${ITK_USE_FILE})
 
 
 # This block builds a module as both a shared object and an executable
