@@ -29,8 +29,8 @@ class vtkAttributedPolyDataToImage : public vtkPolyDataToImageStencilOBBTree
 
   vtkSetMacro(Attributes, vtkFloatArray *) ;
 
-  vtkImageData *GetAttributeVolume () ;
-  vtkImageData *GetBinaryVolume () ;
+  vtkSmartPointer<vtkImageData> GetAttributeVolume () ;
+  vtkSmartPointer<vtkImageData> GetBinaryVolume () ;
   
   
   protected:
@@ -48,13 +48,13 @@ class vtkAttributedPolyDataToImage : public vtkPolyDataToImageStencilOBBTree
   vtkAttributedPolyDataToImage (const vtkAttributedPolyDataToImage&);  // Not implemented.
   void operator=(const vtkAttributedPolyDataToImage&);  // Not implemented.
 
-  vtkImageData *BinaryVolume, *AttributeVolume ;
-  vtkFloatArray *Attributes ;
+  vtkSmartPointer<vtkImageData> BinaryVolume, AttributeVolume ;
+  vtkSmartPointer<vtkFloatArray> Attributes ;
 
-  vtkIdTypeArray *faceList ;
-  vtkPoints *pointList ;
-  vtkPolyData *mesh ;
-  vtkImageStencil *stencil ;
+  vtkSmartPointer<vtkIdTypeArray> faceList ;
+  vtkSmartPointer<vtkPoints> pointList ;
+  vtkSmartPointer<vtkPolyData> mesh ;
+  vtkSmartPointer<vtkImageStencil> stencil ;
   typedef vtkImageStencilSource SuperSuperclass ;
   bool ScanConvertPerformed ;
 } ;
