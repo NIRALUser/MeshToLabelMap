@@ -28,8 +28,8 @@ vtkAttributedPolyDataToImage::vtkAttributedPolyDataToImage()
   this->BinaryVolume = NULL ;
   this->AttributeVolume = NULL ;
   this->Attributes = NULL ;
-  this->faceList = vtkIdTypeArray::New () ;
-  this->pointList = vtkPoints::New () ;
+  this->faceList = vtkSmartPointer<vtkIdTypeArray>::New () ;
+  this->pointList = vtkSmartPointer<vtkPoints>::New () ;
   this->ScanConvertPerformed = false ;
   this->mesh = NULL ;
   this->stencil = NULL ;
@@ -38,22 +38,7 @@ vtkAttributedPolyDataToImage::vtkAttributedPolyDataToImage()
 //----------------------------------------------------------------------------
 vtkAttributedPolyDataToImage::~vtkAttributedPolyDataToImage()
 {  
-  if ( this->faceList )
-    this->faceList->Delete () ;
-  if ( this->pointList ) 
-    this->pointList->Delete () ;
-  if ( this->BinaryVolume ) 
-    this->BinaryVolume->Delete () ;
 
-  if ( this->AttributeVolume ) 
-    this->AttributeVolume->Delete () ;
-  if ( this->stencil )
-    {
-      //this->GetOutput()->Delete() ;
-      //if ( this->stencil->GetStencil() )
-      //this->stencil->GetStencil()->Delete () ;
-    //  this->stencil->Delete () ;
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -114,8 +99,8 @@ int vtkAttributedPolyDataToImage::RequestData(
       std::cout << "Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl ;
       std::cout << "Extent: " << extent[0] << " " << extent[1] << " " << extent[2] << " " << extent[3] << " " << extent[4] << " " << extent[5] << std::endl ;
   }
-  vtkOBBTree *tree = this->OBBTree;
-  vtkPoints *points = vtkPoints::New();
+  vtkSmartPointer<vtkOBBTree> tree = this->OBBTree;
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
   double p0[3],p1[3];
 
@@ -251,7 +236,6 @@ int vtkAttributedPolyDataToImage::RequestData(
     {
     delete [] zlist;
     }
-  points->Delete();
 
   this->ScanConvertPerformed = true ;
   return 1 ;
@@ -261,13 +245,13 @@ void vtkAttributedPolyDataToImage::ComputeAttributeVolume ()
 {
   double spacing[3], origin[3] ;
   int *extent ; 
-  vtkImageStencilData *stencil = this->GetOutput () ;
+  vtkSmartPointer<vtkImageStencilData> stencil = this->GetOutput () ;
   stencil->GetSpacing ( spacing ) ;
   stencil->GetOrigin ( origin ) ;
   extent= this->GetOutputWholeExtent () ;
 
   // create empty image
-  this->AttributeVolume = vtkImageData::New () ;
+  this->AttributeVolume = vtkSmartPointer<vtkImageData>::New () ;
   this->AttributeVolume->SetOrigin ( origin ) ;
   this->AttributeVolume->SetSpacing ( spacing ) ;
   this->AttributeVolume->SetDimensions ( extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1 ) ;
@@ -296,7 +280,7 @@ void vtkAttributedPolyDataToImage::ComputeAttributeVolume ()
     this->pointList->GetPoint ( i, p ) ;
     faceId = this->faceList->GetValue ( i ) ;
 
-    vtkIdList *facePoints = vtkIdList::New () ;
+    vtkSmartPointer<vtkIdList> facePoints = vtkSmartPointer<vtkIdList>::New () ;
     this->mesh->GetCellPoints ( faceId, facePoints ) ;
     result = this->mesh->GetCell ( faceId )->EvaluatePosition ( p, closestPoint, subId, pCoords, dist2, weights ) ;
     if( this->GetDebug() )
@@ -324,12 +308,11 @@ void vtkAttributedPolyDataToImage::ComputeAttributeVolume ()
       gridCoords[0]-- ; 
 
     this->AttributeVolume->SetScalarComponentFromDouble ( gridCoords[0], gridCoords[1], gridCoords[2], 0, attributeValue );
-    facePoints->Delete () ;
   }
   //std::cout << "Attribute volume computed. " << std::endl ;
 }
 
-vtkImageData * vtkAttributedPolyDataToImage::GetBinaryVolume()
+vtkSmartPointer<vtkImageData> vtkAttributedPolyDataToImage::GetBinaryVolume()
 {
   if ( !this->ScanConvertPerformed ) 
     return NULL ;
@@ -346,14 +329,14 @@ vtkImageData * vtkAttributedPolyDataToImage::GetBinaryVolume()
   size[2] = extent[5] - extent[4] + 1 ;
 
   // Create an empty image
-  vtkImageData *emptyImage = vtkImageData::New () ;
+  vtkSmartPointer<vtkImageData> emptyImage = vtkSmartPointer<vtkImageData>::New () ;
   emptyImage->SetOrigin ( origin ) ;
   emptyImage->SetSpacing ( spacing ) ;
   emptyImage->SetDimensions ( size ) ;
   emptyImage->AllocateScalars(VTK_INT, 1);
   
   // Use the stencil as a cookie cutter
-  this->stencil = vtkImageStencil::New () ;
+  this->stencil = vtkSmartPointer<vtkImageStencil>::New () ;
   this->stencil->SetInputData ( emptyImage ) ;
   //this->GetOutput() ;
   
@@ -365,12 +348,11 @@ vtkImageData * vtkAttributedPolyDataToImage::GetBinaryVolume()
   this->BinaryVolume = this->stencil->GetOutput () ;
   //this->stencil->Delete() ;
 
-  emptyImage->Delete () ;
 
   return this->BinaryVolume ;
 }
 
-vtkImageData * vtkAttributedPolyDataToImage::GetAttributeVolume()
+vtkSmartPointer<vtkImageData> vtkAttributedPolyDataToImage::GetAttributeVolume()
 {
   if ( ( !this->ScanConvertPerformed ) || ( !this->Attributes ) ) 
     return NULL ;

@@ -41,7 +41,7 @@ int WriteITKImage ( itk::Image < unsigned char, 3 >::Pointer image, std::string 
     return 0 ;
 }
 
-itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkImageData *vtkImage , itk::Matrix< double , 3 , 3 > direction , unsigned char value )
+itk::Image < unsigned char, 3 >::Pointer VTK2BinaryITK ( vtkSmartPointer<vtkImageData> vtkImage , itk::Matrix< double , 3 , 3 > direction , unsigned char value )
 {
   typedef itk::Image < unsigned char, 3 > ImageType ;
   typedef ImageType::Pointer ImagePointer ;
@@ -229,7 +229,7 @@ int ReadVTK( std::string input , vtkSmartPointer<vtkPolyData> &polyData )
   vtkSmartPointer<ErrorObserver>::New();
   if( input.rfind( ".vtk" ) != std::string::npos )
   {
-    vtkSmartPointer< vtkPolyDataReader > polyReader = vtkPolyDataReader::New() ;
+    vtkSmartPointer< vtkPolyDataReader > polyReader = vtkSmartPointer< vtkPolyDataReader >::New() ;
     polyReader->AddObserver( vtkCommand::ErrorEvent , errorObserver ) ;
     polyReader->SetFileName( input.c_str() ) ;
     polyData = polyReader->GetOutput() ;
@@ -237,7 +237,7 @@ int ReadVTK( std::string input , vtkSmartPointer<vtkPolyData> &polyData )
   }
   else if( input.rfind( ".vtp" ) != std::string::npos )
   {
-    vtkSmartPointer< vtkXMLPolyDataReader > xmlReader = vtkXMLPolyDataReader::New() ;
+    vtkSmartPointer< vtkXMLPolyDataReader > xmlReader = vtkSmartPointer< vtkXMLPolyDataReader >::New() ;
     xmlReader->SetFileName( input.c_str() ) ;
     xmlReader->AddObserver( vtkCommand::ErrorEvent , errorObserver ) ;
     polyData = xmlReader->GetOutput() ;
@@ -379,7 +379,7 @@ int main ( int argc, char *argv[] )
   scanConverter->SetOutputSpacing ( spacing ) ;
   scanConverter->SetOutputWholeExtent ( 0, size[0] - 1, 0, size[1] - 1, 0, size[2] - 1 ) ;
   scanConverter->Update () ;
-  vtkImageData *vtkBinaryVolume = scanConverter->GetBinaryVolume () ;
+  vtkSmartPointer<vtkImageData> vtkBinaryVolume = scanConverter->GetBinaryVolume () ;
   ImagePointer binaryVolume ;
   //we can safely can 'value' which is an int to unsigned char because we checked that its value is between 1 and 255 (1 because 0 is the background value)
   binaryVolume = VTK2BinaryITK ( vtkBinaryVolume , direction , (unsigned char)value ) ;

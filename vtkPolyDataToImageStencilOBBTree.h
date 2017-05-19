@@ -25,6 +25,7 @@
 
 #include <vtkPoints.h>
 #include "vtkImageStencilSource.h"
+#include "vtkSmartPointer.h"
 
 class vtkPolyData;
 class vtkOBBTree;
@@ -108,7 +109,7 @@ private:
   void operator=(const vtkPolyDataToImageStencilOBBTree&);  // Not implemented.
 };
 
-void vtkTurnPointsIntoList(vtkPoints *points, int *&clist, int &clistlen,
+void vtkTurnPointsIntoList(vtkSmartPointer<vtkPoints> points, int *&clist, int &clistlen,
                            int extent[6], double origin[3], double spacing[3],
                            int dim);
 void vtkAddEntryToList(int *&clist, int &clistlen, int &clistmaxlen, int r);

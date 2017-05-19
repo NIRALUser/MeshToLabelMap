@@ -151,7 +151,7 @@ void vtkAddEntryToList(int *&clist, int &clistlen, int &clistmaxlen, int r)
 }
 
 //----------------------------------------------------------------------------
-void vtkTurnPointsIntoList(vtkPoints *points, int *&clist, int &clistlen,
+void vtkTurnPointsIntoList(vtkSmartPointer<vtkPoints> points, int *&clist, int &clistlen,
                            int extent[6], double origin[3], double spacing[3],
                            int dim)
 {
@@ -257,7 +257,7 @@ int vtkPolyDataToImageStencilOBBTree::RequestData(
   double *origin = data->GetOrigin();
 
   vtkOBBTree *tree = this->OBBTree;
-  vtkPoints *points = vtkPoints::New();
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
   double p0[3],p1[3];
 
@@ -371,8 +371,6 @@ int vtkPolyDataToImageStencilOBBTree::RequestData(
     {
     delete [] zlist;
     }
-  points->Delete();
-
   return 1;
 }
 
