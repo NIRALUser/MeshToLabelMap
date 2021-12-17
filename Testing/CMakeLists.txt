@@ -3,16 +3,12 @@ CMAKE_POLICY(VERSION 2.8)
 
 set(CLP MeshToLabelMap )
 
-# Add standard remote object stores to user's
-# configuration.
-list( APPEND ExternalData_URL_TEMPLATES
-"http://slicer.kitware.com/midas3/api/rest?method=midas.bitstream.download&checksum=%(hash)"
-)
+# using slicer default ExternalData_URL_TEMPLATES
 
 set( TestingBinarydirectory ${CMAKE_CURRENT_BINARY_DIR}/Temporary )
 set( DummyFile ${TestingBinarydirectory}/dummy.nrrd )#dummy file because it is never created. Only used for tests that are designed to fail
-set( InputVTK DATA{Data/Input/model.vtk} )
-set( referenceImage DATA{Data/Input/reference.nrrd} )
+set( InputVTK  DATA{Data/Input/MeshToLabelMap-Model.vtk} )
+set( referenceImage  DATA{Data/Input/MeshToLabelMap-Reference.nrrd} )
 
 # Should just display the "Usage"
 add_test(NAME ${CLP}Help COMMAND ${Slicer_LAUNCH_COMMAND} $<TARGET_FILE:${CLP}> --help)
@@ -128,7 +124,7 @@ if( NOT VTK_DEBUG_LEAKS )
   ExternalData_Add_Test( ${CLP}Data
     NAME ${CLP}TestLabelMapWithBB
     COMMAND $<TARGET_FILE:${CLP}Test>
-    --compare DATA{Data/Baseline/baselineLabelMapWithBB.nrrd}
+    --compare DATA{Data/Baseline/MeshToLabelMap-BaselineLabelMapWithBB.nrrd}
           ${output${CLP}LabelMapWithBB}
     --compareIntensityTolerance 0
     --compareRadiusTolerance 0
@@ -147,7 +143,7 @@ if( NOT VTK_DEBUG_LEAKS )
   ExternalData_Add_Test( ${CLP}Data
     NAME ${CLP}TestLabelMapWithBBExt101520
     COMMAND $<TARGET_FILE:${CLP}Test>
-    --compare DATA{Data/Baseline/baselineLabelMapWithBBExt101520.nrrd}
+    --compare DATA{Data/Baseline/MeshToLabelMap-BaselineLabelMapWithBBExt101520.nrrd}
           ${output${CLP}LabelMapWithBBExt101520}
     --compareIntensityTolerance 0
     --compareRadiusTolerance 0
@@ -166,7 +162,7 @@ if( NOT VTK_DEBUG_LEAKS )
   ExternalData_Add_Test( ${CLP}Data
     NAME ${CLP}TestLabelMapWithReference
     COMMAND $<TARGET_FILE:${CLP}Test>
-    --compare DATA{Data/Baseline/baselineLabelMapWithReference.nrrd}
+    --compare DATA{Data/Baseline/MeshToLabelMap-BaselineLabelMapWithReference.nrrd}
           ${output${CLP}LabelMapWithReference}
     --compareIntensityTolerance 0
     --compareRadiusTolerance 0
@@ -183,7 +179,7 @@ if( NOT VTK_DEBUG_LEAKS )
   ExternalData_Add_Test( ${CLP}Data
     NAME ${CLP}TestLabelMapWithBBMedianFilter
     COMMAND $<TARGET_FILE:${CLP}Test>
-    --compare DATA{Data/Baseline/baselineLabelMapWithBBMedianFilter.nrrd}
+    --compare DATA{Data/Baseline/MeshToLabelMap-BaselineLabelMapWithBBMedianFilter.nrrd}
           ${output${CLP}LabelMapWithBBMedianFilter}
     --compareIntensityTolerance 0
     --compareRadiusTolerance 0

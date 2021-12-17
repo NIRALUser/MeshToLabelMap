@@ -301,19 +301,6 @@ int main ( int argc, char *argv[] )
   {
     return EXIT_FAILURE ;
   }
-  vtkSmartPointer<vtkMatrix4x4> RASMatrix = vtkSmartPointer<vtkMatrix4x4>::New() ;
-  RASMatrix->Identity() ;
-  RASMatrix->SetElement( 0 , 0 , -1 ) ;
-  RASMatrix->SetElement( 1 , 1 , -1 ) ;
-  vtkSmartPointer<vtkTransform> transform =
-             vtkSmartPointer<vtkTransform>::New() ;
-  transform->SetMatrix( RASMatrix ) ;
-  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
-             vtkSmartPointer<vtkTransformPolyDataFilter>::New() ;
-  transformFilter->SetInputData( polyData ) ;
-  transformFilter->SetTransform( transform ) ;
-  transformFilter->Update() ;
-  polyData->ShallowCopy( transformFilter->GetOutput() ) ;
   double spacing[ 3 ] ;
   double origin[ 3] ;
   int size[ 3 ] ;
@@ -357,7 +344,9 @@ int main ( int argc, char *argv[] )
     {
       OrientationMatrix->Print( std::cout ) ;
     }
+    vtkNew<vtkTransform> transform;
     transform->SetMatrix( OrientationMatrix ) ;
+    vtkNew<vtkTransformPolyDataFilter> transformFilter;
     transformFilter->SetInputData( polyData ) ;
     transformFilter->SetTransform( transform ) ;
     transformFilter->Update() ;
