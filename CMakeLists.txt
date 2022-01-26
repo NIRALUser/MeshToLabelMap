@@ -125,6 +125,7 @@ IF(BUILD_TESTING)
   include(CTest)
   include(ExternalData)
   ADD_SUBDIRECTORY(Testing)
+  ADD_SUBDIRECTORY(MeshToLabelMapPipeline)
 ENDIF(BUILD_TESTING)
 
 if( MeshToLabelMap_BUILD_SLICER_EXTENSION )
