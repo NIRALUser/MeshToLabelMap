@@ -14,7 +14,6 @@ if( MeshToLabelMap_BUILD_SLICER_EXTENSION )
   set( EXTENSION_STATUS "Release" )
   set( EXTENSION_DEPENDS "NA" ) # Specified as a space separated list or 'NA' if any
   set( EXTENSION_BUILD_SUBDIRECTORY . )
-  find_package( Subversion REQUIRED )
   find_package( Git REQUIRED )
   find_package( Slicer REQUIRED )
   include( ${Slicer_USE_FILE} )
