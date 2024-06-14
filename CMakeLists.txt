@@ -1,7 +1,6 @@
+cmake_minimum_required(VERSION 3.16.3...3.19.7 FATAL_ERROR)
+
 project(MeshToLabelMap)
-
-cmake_minimum_required(VERSION 2.8.10 )
-
 
 if( MeshToLabelMap_BUILD_SLICER_EXTENSION )
   set( EXTENSION_NAME MeshToLabelMap )
