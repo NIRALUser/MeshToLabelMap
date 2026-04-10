@@ -18,6 +18,7 @@
 #include "vtkPolyData.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 
+#include <iostream>
 #include <math.h>
 
 vtkStandardNewMacro(vtkAttributedPolyDataToImage);
